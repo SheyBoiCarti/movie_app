@@ -53,21 +53,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "index",
+          title: "Movies",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.home} title="Home" />
+            <TabIcon focused={focused} icon={icons.home} title="Movies" />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="search"
+        name="TvShows"
         options={{
-          title: "Search",
+          title: "TV Shows",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.search} title="Search" />
+            <TabIcon focused={focused} icon={icons.play} title="TV Shows" />
           ),
         }}
       />

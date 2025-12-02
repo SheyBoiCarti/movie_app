@@ -15,13 +15,7 @@ interface Movie {
   vote_count: number;
 }
 
-interface TrendingMovie {
-  searchTerm: string;
-  movie_id: number;
-  title: string;
-  count: number;
-  poster_url: string;
-}
+
 
 interface MovieDetails {
   adult: boolean;
@@ -69,9 +63,98 @@ interface MovieDetails {
   video: boolean;
   vote_average: number;
   vote_count: number;
+
+  // Appended sub-objects
+  credits: Credits;
+  videos: Videos;
+  images: Images;
+  ["watch/providers"]: WatchProvidersResponse;
 }
 
 interface TrendingCardProps {
   movie: TrendingMovie;
   index: number;
 }
+
+interface Provider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
+interface WatchProvidersByRegion {
+  [key: string]: {
+    link: string;
+    flatrate?: Provider[];
+    rent?: Provider[];
+    buy?: Provider[];
+  };
+}
+
+interface WatchProvidersResponse {
+  id: number;
+  results: WatchProvidersByRegion;
+}
+
+
+// Sub-interfaces for appended responses (non-exported)
+interface CastMember {
+  cast_id?: number;
+  character?: string;
+  credit_id: string;
+  gender: number | null;
+  id: number;
+  name: string;
+  order?: number;
+  profile_path: string | null;
+}
+
+interface CrewMember {
+  credit_id: string;
+  department?: string;
+  job?: string;
+  gender: number | null;
+  id: number;
+  name: string;
+  profile_path: string | null;
+}
+
+interface Credits {
+  cast: CastMember[];
+  crew: CrewMember[];
+}
+
+interface Video {
+  id: string;
+  iso_639_1: string;
+  iso_3166_1: string;
+  key: string;
+  name: string;
+  site: string; // e.g., YouTube
+  size: number; // e.g., 1080
+  type: string; // e.g., Trailer
+  official: boolean;
+  published_at: string;
+}
+
+interface Videos {
+  results: Video[];
+}
+
+interface Image {
+  aspect_ratio: number;
+  file_path: string;
+  height: number;
+  width: number;
+  iso_639_1: string | null;
+  vote_average: number;
+  vote_count: number;
+}
+
+interface Images {
+  backdrops: Image[];
+  posters: Image[];
+  logos?: Image[];
+}
+
