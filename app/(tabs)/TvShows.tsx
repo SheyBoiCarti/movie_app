@@ -1,4 +1,4 @@
-import { FetchMovies } from "@/api";
+import { FetchTV } from "@/api";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import React, { useCallback, useEffect, useState } from 'react';
@@ -7,16 +7,16 @@ import SearchBar from "../components/SearchBar";
 import MovieCard from "../MovieCard";
 import useFetch from "../services/usefetch";
 
-export default function Index() {
+export default function TvShows() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popularity.desc");
   const [year, setYear] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(1);
-  const [moviesList, setMoviesList] = useState<Movie[]>([]);
+  const [tvList, setTvList] = useState<Movie[]>([]);
   const [hasMore, setHasMore] = useState(true);
 
-  const { data, loading: moviesLoading, error: moviesError, refetch } = useFetch(
-    () => FetchMovies({ query: searchQuery, page, sortBy, year }),
+  const { data, loading: tvLoading, error: tvError, refetch } = useFetch(
+    () => FetchTV({ query: searchQuery, page, sortBy, year }),
     true
   );
 
@@ -25,7 +25,7 @@ export default function Index() {
       // Reset when filters or query change
       setPage(1);
       setHasMore(true);
-      setMoviesList([]);
+      setTvList([]);
       await refetch();
     }, 400);
     return () => clearTimeout(timeoutId);
@@ -34,14 +34,14 @@ export default function Index() {
   useEffect(() => {
     if (!data) return;
     setHasMore(data.page < data.total_pages);
-    setMoviesList((prev) => (data.page === 1 ? data.results : [...prev, ...data.results]));
+    setTvList((prev) => (data.page === 1 ? data.results : [...prev, ...data.results]));
   }, [data]);
 
   const loadMore = useCallback(async () => {
-    if (moviesLoading || !hasMore) return;
+    if (tvLoading || !hasMore) return;
     setPage((p) => p + 1);
     await refetch();
-  }, [moviesLoading, hasMore, refetch]);
+  }, [tvLoading, hasMore, refetch]);
 
   
   const ListHeader = () => null;
@@ -52,7 +52,7 @@ export default function Index() {
       <Image source={icons.logo} className="w-20 h-10 mt-20 mb-3 mx-auto"/>
       <View className="px-5">
         <SearchBar
-          placeholder='Search for a movie'
+          placeholder='Search for a TV show'
           value={searchQuery}
           onChangeText={(text) => setSearchQuery(text)}
         />
@@ -61,26 +61,26 @@ export default function Index() {
         <View className="flex-row mt-3 gap-x-3">
           <Text onPress={() => setSortBy("popularity.desc")} className={`px-3 py-1 rounded-full ${sortBy === "popularity.desc" ? "bg-dark-200" : "bg-dark-100"} text-white`}>Popular</Text>
           <Text onPress={() => setSortBy("vote_average.desc")} className={`px-3 py-1 rounded-full ${sortBy === "vote_average.desc" ? "bg-dark-200" : "bg-dark-100"} text-white`}>Top Rated</Text>
-          <Text onPress={() => setSortBy("release_date.desc")} className={`px-3 py-1 rounded-full ${sortBy === "release_date.desc" ? "bg-dark-200" : "bg-dark-100"} text-white`}>Latest</Text>
+          <Text onPress={() => setSortBy("first_air_date.desc")} className={`px-3 py-1 rounded-full ${sortBy === "first_air_date.desc" ? "bg-dark-200" : "bg-dark-100"} text-white`}>Latest</Text>
           <Text onPress={() => setYear(new Date().getFullYear())} className={`px-3 py-1 rounded-full ${year ? "bg-dark-200" : "bg-dark-100"} text-white`}>This Year</Text>
           <Text onPress={() => setYear(undefined)} className={`px-3 py-1 rounded-full ${!year ? "bg-dark-200" : "bg-dark-100"} text-white`}>All Years</Text>
         </View>
-        <Text className="text-lg text-white mt-5 mb-3">Latest Movies</Text>
+        <Text className="text-lg text-white mt-5 mb-3">Latest TV Shows</Text>
       </View>
 
-      {moviesLoading ? (
+      {tvLoading ? (
         <ActivityIndicator 
           size="large"
           color="#0000ff"
           className="mt-10 self-center"
         />
-      ) : moviesError ? (
-        <Text className="p-5 text-red-500">Error: {moviesError?.message}</Text>
+      ) : tvError ? (
+        <Text className="p-5 text-red-500">Error: {tvError?.message}</Text>
       ) : (
         <FlatList
-          data={moviesList}
+          data={tvList}
           renderItem={({ item }) => (
-            <MovieCard {...item} type="movie" />
+            <MovieCard {...item} type="tv" />
           )}
           keyExtractor={(item) => item.id.toString()}
           numColumns={3}
