@@ -1,4 +1,4 @@
-import { fetchMovieDetails, fetchTVDetails } from "@/api";
+import { fetchMovieDetails, fetchSeasonDetails, fetchTVDetails } from "@/api";
 import { icons } from "@/constants/icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -25,11 +25,34 @@ const MovieDetails = () => {
   const [backdropLimit, setBackdropLimit] = useState(10);
   const [posterLimit, setPosterLimit] = useState(10);
 
+  // Season State
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
+  const [seasonDetails, setSeasonDetails] = useState<SeasonDetails | null>(null);
+  const [seasonLoading, setSeasonLoading] = useState(false);
+
   const {
     data: movie,
     loading,
     error,
   } = useFetch(() => (type === "tv" ? fetchTVDetails(id as string) : fetchMovieDetails(id as string)), true);
+
+  const handleSeasonSelect = async (seasonNumber: number) => {
+      if (selectedSeason === seasonNumber) {
+          setSelectedSeason(null);
+          setSeasonDetails(null);
+          return;
+      }
+      setSelectedSeason(seasonNumber);
+      setSeasonLoading(true);
+      try {
+          const details = await fetchSeasonDetails(id as string, seasonNumber);
+          setSeasonDetails(details);
+      } catch (e) {
+          console.error(e);
+      } finally {
+          setSeasonLoading(false);
+      }
+  }
 
   // Watch providers now come from the appended movie details response
   const watchProviders = movie?.["watch/providers"] ?? null;
@@ -146,6 +169,64 @@ const MovieDetails = () => {
           <Text className="text-light-300 leading-6">
             {movie?.overview}
           </Text>
+
+          {/* Seasons Section (TV Only) */}
+          {movie?.seasons && movie.seasons.length > 0 && (
+            <View className="mt-8">
+              <Text className="text-white text-lg font-bold mb-3">Seasons</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+                {movie.seasons.map((season) => (
+                  <TouchableOpacity
+                    key={season.id}
+                    onPress={() => handleSeasonSelect(season.season_number)}
+                    className={`mr-4 px-4 py-2 rounded-full border ${selectedSeason === season.season_number ? 'bg-secondary border-secondary' : 'bg-dark-200 border-gray-700'}`}
+                  >
+                    <Text className={selectedSeason === season.season_number ? 'text-black font-bold' : 'text-white'}>
+                      {season.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {seasonLoading ? (
+                <ActivityIndicator size="small" color="#0000ff" />
+              ) : seasonDetails && selectedSeason !== null ? (
+                <View className="gap-4">
+                  {seasonDetails.episodes.map((episode) => (
+                    <TouchableOpacity 
+                        key={episode.id} 
+                        className="flex-row gap-3 bg-dark-100 p-2 rounded-lg"
+                        onPress={() => router.push({
+                            pathname: "/tv/episode",
+                            params: { tvId: id, seasonNumber: selectedSeason, episodeNumber: episode.episode_number }
+                        })}
+                    >
+                      <Image
+                        source={{
+                          uri: episode.still_path
+                            ? `https://image.tmdb.org/t/p/w185${episode.still_path}`
+                            : "https://placehold.co/185x104/1a1a1a/FFFFFF.png",
+                        }}
+                        className="w-32 h-20 rounded"
+                        resizeMode="cover"
+                      />
+                      <View className="flex-1 justify-center">
+                        <Text className="text-white font-bold text-base mb-1">
+                          {episode.episode_number}. {episode.name}
+                        </Text>
+                        <Text className="text-light-300 text-xs" numberOfLines={2}>
+                          {episode.overview}
+                        </Text>
+                        <Text className="text-light-300 text-xs mt-1">
+                            {episode.air_date} • {episode.runtime}m
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          )}
 
           {/* Quick Data Check (credits, videos, images) */}
           <View className="mt-6">

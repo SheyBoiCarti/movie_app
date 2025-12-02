@@ -63,12 +63,45 @@ interface MovieDetails {
   video: boolean;
   vote_average: number;
   vote_count: number;
+  seasons?: Season[];
 
   // Appended sub-objects
   credits: Credits;
   videos: Videos;
   images: Images;
   ["watch/providers"]: WatchProvidersResponse;
+}
+
+interface Season {
+  air_date: string;
+  episode_count: number;
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string;
+  season_number: number;
+  vote_average: number;
+}
+
+interface Episode {
+  air_date: string;
+  episode_number: number;
+  id: number;
+  name: string;
+  overview: string;
+  production_code: string;
+  runtime: number;
+  season_number: number;
+  show_id: number;
+  still_path: string;
+  vote_average: number;
+  vote_count: number;
+  crew: CrewMember[];
+  guest_stars: CastMember[];
+}
+
+interface SeasonDetails extends Season {
+    episodes: Episode[];
 }
 
 interface TrendingCardProps {
