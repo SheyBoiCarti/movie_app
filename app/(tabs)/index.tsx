@@ -1,4 +1,3 @@
-import { Link } from 'expo-router';
 import React from 'react';
 import { Text, View } from 'react-native';
 
@@ -9,8 +8,6 @@ export default function Index() {
       <Text className="text-5xl text-dark-100 font-center" > 
         Welcome! </Text>
         
-      <Link href="/onboarding">Go to onboarding</Link>
-      <Link href={{pathname: "/movie/[id]", params: { id: "avengers" }  }}>avengers movie </Link>
       </View>
   );
 }
