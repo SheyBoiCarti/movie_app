@@ -73,18 +73,7 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="saved"
-        options={{
-          title: "Saved",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.save} title="Save" />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="profile"
+        name="Login"
         options={{
           title: "Profile",
           headerShown: false,
