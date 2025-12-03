@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { Models } from "react-native-appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { account, avatars } from "../Client";
-import GoogleLoginButton from "../GoogleLoginButton";
+import GoogleLoginButton from "../../components/GoogleLoginButton";
+import { account, avatars } from "../../lib/Client";
 
 const Login = () => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
