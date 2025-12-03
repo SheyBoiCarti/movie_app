@@ -5,8 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SearchBar from "../components/SearchBar";
-import MovieCard from "../MovieCard";
+import MovieCard from "../../components/MovieCard";
+import SearchBar from "../../components/SearchBar";
 import useFetch from "../services/usefetch";
 
 export default function TvShows() {

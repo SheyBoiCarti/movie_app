@@ -2,11 +2,12 @@ import { fetchGenres, FetchMovies, FilterOptions } from "@/api";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { Ionicons } from '@expo/vector-icons';
+import { makeRedirectUri } from "expo-auth-session";
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SearchBar from "../components/SearchBar";
-import MovieCard from "../MovieCard";
+import MovieCard from "../../components/MovieCard";
+import SearchBar from "../../components/SearchBar";
 import useFetch from "../services/usefetch";
 
 export default function Index() {
@@ -21,6 +22,8 @@ export default function Index() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [genres, setGenres] = useState<{ id: number; name: string }[]>([]);
+
+  console.log("Redirect URI:", makeRedirectUri({ scheme: "movieapp" }));
 
   useEffect(() => {
     fetchGenres('movie').then(setGenres);
