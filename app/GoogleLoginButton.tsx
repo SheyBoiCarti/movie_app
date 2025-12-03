@@ -43,15 +43,31 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess })
 
       if (result.type !== "success") return;
 
-      const { queryParams } = Linking.parse(result.url);
-      console.log("[GoogleLogin] Parsed params:", queryParams);
+      // Parse fragment parameters (after #) instead of query parameters
+      const url = result.url;
+      const hashIndex = url.indexOf('#');
+      let secret: string | undefined;
+      let userId: string | undefined;
 
-      if (queryParams?.error) throw new Error(`Appwrite login failed: ${queryParams.error}`);
+      if (hashIndex !== -1) {
+        const fragment = url.substring(hashIndex + 1);
+        const params = new URLSearchParams(fragment);
+        secret = params.get('secret') ?? undefined;
+        userId = params.get('userId') ?? undefined;
+      }
 
-      const secret = queryParams?.secret;
-      const userId = queryParams?.userId;
+      // Fallback to query params if fragment parsing didn't work
+      if (!secret || !userId) {
+        const { queryParams } = Linking.parse(url);
+        secret = queryParams?.secret as string | undefined;
+        userId = queryParams?.userId as string | undefined;
+      }
 
-      if (!secret || !userId) throw new Error(`Invalid response from Google login. URL: ${result.url}`);
+      console.log("[GoogleLogin] Parsed userId:", userId, "secret:", secret ? "***" : "missing");
+
+      if (!secret || !userId) {
+        throw new Error(`Invalid response from Google login. URL: ${result.url}`);
+      }
 
       // Complete Appwrite session
       await account.createSession(userId as string, secret as string);
