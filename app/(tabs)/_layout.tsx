@@ -1,8 +1,10 @@
-import { Tabs } from "expo-router";
-import { Image, ImageBackground, Text, View } from "react-native";
 
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
+import { Tabs, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, Image, ImageBackground, Text, View } from "react-native";
+import { account } from "../../lib/Client";
 
 function TabIcon({ focused, icon, title }: any) {
   if (focused) {
@@ -27,6 +29,33 @@ function TabIcon({ focused, icon, title }: any) {
 }
 
 export default function TabsLayout() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const checkUser = useCallback(async () => {
+    try {
+      const currentUser = await account.get();
+      setUser(currentUser);
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
+
+  // Refresh user state when tab layout is focused (e.g., after login)
+  useFocusEffect(
+    useCallback(() => {
+      checkUser();
+    }, [checkUser])
+  );
+
+  if (loading) return null;
+
   return (
     <Tabs
       screenOptions={{
@@ -69,6 +98,28 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon={icons.play} title="TV Shows" />
           ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="Favorites"
+        options={{
+          title: "Saved",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={icons.save} title="Saved" />
+          ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (!user) {
+              e.preventDefault();
+              Alert.alert(
+                "Login Required",
+                "Please login to access your favorites."
+              );
+            }
+          },
         }}
       />
 
