@@ -29,6 +29,7 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess })
 
       const redirectUri = AuthSession.makeRedirectUri({
         scheme: "movieapp",
+        useProxy: true,
       });
 
       console.log("[GoogleLogin] redirectUri:", redirectUri);
