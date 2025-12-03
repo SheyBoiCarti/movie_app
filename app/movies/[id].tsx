@@ -1,15 +1,17 @@
 import { fetchMovieDetails, fetchSeasonDetails, fetchTVDetails } from "@/api";
 import { icons } from "@/constants/icons";
+import { isFavorite, toggleFavorite } from "@/lib/favorites";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Linking,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useFetch from "../services/usefetch";
@@ -30,11 +32,69 @@ const MovieDetails = () => {
   const [seasonDetails, setSeasonDetails] = useState<SeasonDetails | null>(null);
   const [seasonLoading, setSeasonLoading] = useState(false);
 
+  // Favorites State
+  const [isFav, setIsFav] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+
   const {
     data: movie,
     loading,
     error,
   } = useFetch(() => (type === "tv" ? fetchTVDetails(id as string) : fetchMovieDetails(id as string)), true);
+
+  // Auto-load first season for TV shows
+  useEffect(() => {
+    if (type === "tv" && movie?.seasons && movie.seasons.length > 0 && selectedSeason === null) {
+      const firstSeason = movie.seasons.find(s => s.season_number > 0) || movie.seasons[0];
+      handleSeasonSelect(firstSeason.season_number);
+    }
+  }, [movie, type]);
+
+  // Check if movie is favorited on load
+  useEffect(() => {
+    const checkFavorite = async () => {
+      if (id) {
+        const favorited = await isFavorite(
+          Number(id),
+          (type as "movie" | "tv") || "movie"
+        );
+        setIsFav(favorited);
+      }
+    };
+    checkFavorite();
+  }, [id, type]);
+
+  const handleToggleFavorite = async () => {
+    if (!movie || favLoading) return;
+    setFavLoading(true);
+    try {
+      const title = movie.title || movie.name || "Unknown";
+      const posterPath = movie.poster_path || "";
+      const newFavState = await toggleFavorite(
+        Number(id),
+        (type as "movie" | "tv") || "movie",
+        title,
+        posterPath
+      );
+      setIsFav(newFavState);
+      Alert.alert(
+        newFavState ? "Added to Favorites" : "Removed from Favorites",
+        newFavState
+          ? `${title} has been added to your favorites.`
+          : `${title} has been removed from your favorites.`
+      );
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to update favorites. Please try again.";
+      Alert.alert(
+        "Login Required",
+        errorMessage.includes("login") 
+          ? "Please login to add movies to your favorites." 
+          : errorMessage
+      );
+    } finally {
+      setFavLoading(false);
+    }
+  };
 
   const handleSeasonSelect = async (seasonNumber: number) => {
       if (selectedSeason === seasonNumber) {
@@ -125,6 +185,23 @@ const MovieDetails = () => {
             <Image source={icons.arrow} className="size-6" tintColor="white" />
           </TouchableOpacity>
 
+          {/* Favorite Button */}
+          <TouchableOpacity
+            onPress={handleToggleFavorite}
+            disabled={favLoading}
+            className="absolute top-5 right-5 bg-dark-100 p-2 rounded-full"
+          >
+            {favLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Image
+                source={icons.save}
+                className="size-6"
+                tintColor={isFav ? "#AB8BFF" : "white"}
+              />
+            )}
+          </TouchableOpacity>
+
           <View className="absolute bottom-0 w-full h-32 bg-gradient-to-t from-primary to-transparent" />
         </View>
 
@@ -181,7 +258,7 @@ const MovieDetails = () => {
                     onPress={() => handleSeasonSelect(season.season_number)}
                     className={`mr-4 px-4 py-2 rounded-full border ${selectedSeason === season.season_number ? 'bg-secondary border-secondary' : 'bg-dark-200 border-gray-700'}`}
                   >
-                    <Text className={selectedSeason === season.season_number ? 'text-black font-bold' : 'text-white'}>
+                    <Text className={selectedSeason === season.season_number ? 'text-white font-bold' : 'text-white'}>
                       {season.name}
                     </Text>
                   </TouchableOpacity>
