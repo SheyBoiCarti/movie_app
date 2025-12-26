@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const FavoriteCard = ({ item }: { item: FavoriteItem }) => {
+const FavoriteCard = React.memo(({ item }: { item: FavoriteItem }) => {
   return (
     <Link href={`/movies/${item.itemId}?type=${item.type}`} asChild>
       <TouchableOpacity className="flex-row items-center bg-dark-100 p-3 rounded-xl mb-3">
@@ -42,7 +42,9 @@ const FavoriteCard = ({ item }: { item: FavoriteItem }) => {
       </TouchableOpacity>
     </Link>
   );
-};
+});
+
+FavoriteCard.displayName = 'FavoriteCard';
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
@@ -69,6 +71,15 @@ export default function Favorites() {
     useCallback(() => {
       loadFavorites();
     }, [filter])
+  );
+
+  const renderFavoriteItem = useCallback(({ item }: { item: FavoriteItem }) => (
+    <FavoriteCard item={item} />
+  ), []);
+
+  const keyExtractor = useCallback(
+    (item: FavoriteItem) => item.$id || `${item.itemId}-${item.type}`,
+    []
   );
 
   return (
@@ -137,10 +148,15 @@ export default function Favorites() {
       ) : (
         <FlatList
           data={favorites}
-          keyExtractor={(item) => item.$id || `${item.itemId}-${item.type}`}
-          renderItem={({ item }) => <FavoriteCard item={item} />}
+          keyExtractor={keyExtractor}
+          renderItem={renderFavoriteItem}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          windowSize={5}
         />
       )}
     </SafeAreaView>

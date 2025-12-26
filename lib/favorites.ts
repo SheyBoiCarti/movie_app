@@ -8,8 +8,10 @@ import {
 
 export interface FavoriteItem {
   $id?: string;
+  $createdAt?: string;
   userId: string;
   itemId: number;
+  // Keep app-facing types lowercase for consistency
   type: "movie" | "tv";
   title: string;
   posterPath: string;
@@ -37,7 +39,8 @@ export const addToFavorites = async (
       {
         userId: user.$id,
         itemId,
-        type,
+        // Map to Appwrite enum values ("movie" | "TV")
+        type: type === "tv" ? "TV" : "movie",
         title,
         posterpath: posterPath,
       },
@@ -48,7 +51,16 @@ export const addToFavorites = async (
       ]
     );
 
-    return favorite as unknown as FavoriteItem;
+    // Normalize response to app-facing shape
+    return {
+      $id: (favorite as any).$id,
+      $createdAt: (favorite as any).$createdAt,
+      userId: (favorite as any).userId,
+      itemId: (favorite as any).itemId,
+      type: (favorite as any).type === "TV" ? "tv" : "movie",
+      title: (favorite as any).title,
+      posterPath: (favorite as any).posterpath || (favorite as any).posterPath,
+    } as FavoriteItem;
   } catch (error: any) {
     // Only log unexpected errors, not authentication errors
     if (!error?.message?.includes("login")) {
@@ -78,7 +90,8 @@ export const removeFromFavorites = async (
       [
         Query.equal("userId", user.$id),
         Query.equal("itemId", itemId),
-        Query.equal("type", type),
+        // Map to Appwrite enum
+        Query.equal("type", type === "tv" ? "TV" : "movie"),
       ]
     );
 
@@ -117,7 +130,8 @@ export const isFavorite = async (
       [
         Query.equal("userId", user.$id),
         Query.equal("itemId", itemId),
-        Query.equal("type", type),
+        // Map to Appwrite enum
+        Query.equal("type", type === "tv" ? "TV" : "movie"),
       ]
     );
 
@@ -143,7 +157,8 @@ export const getFavorites = async (
     const queries = [Query.equal("userId", user.$id)];
 
     if (type) {
-      queries.push(Query.equal("type", type));
+      // Map to Appwrite enum
+      queries.push(Query.equal("type", type === "tv" ? "TV" : "movie"));
     }
 
     const favorites = await databases.listDocuments(
@@ -155,9 +170,11 @@ export const getFavorites = async (
     // Map database response to match our interface
     return favorites.documents.map((doc: any) => ({
       $id: doc.$id,
+      $createdAt: doc.$createdAt,
       userId: doc.userId,
       itemId: doc.itemId,
-      type: doc.type,
+      // Normalize back to lowercase for app usage
+      type: doc.type === "TV" ? "tv" : "movie",
       title: doc.title,
       posterPath: doc.posterpath || doc.posterPath, // Handle both cases
     })) as FavoriteItem[];

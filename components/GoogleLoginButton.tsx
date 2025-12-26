@@ -1,86 +1,132 @@
-import * as Linking from "expo-linking";
+import * as AuthSession from "expo-auth-session";
+import Constants from "expo-constants";
 import * as WebBrowser from "expo-web-browser";
 import React, { useCallback, useEffect } from "react";
 import { Alert, Text, TouchableOpacity } from "react-native";
-import { OAuthProvider } from "react-native-appwrite";
-import { account } from "../lib/Client";
+import { Models, OAuthProvider } from "react-native-appwrite";
 
-WebBrowser.maybeCompleteAuthSession();
+import { account, client } from "../lib/Client";
 
 interface GoogleLoginButtonProps {
-  onLoginSuccess?: (user: any) => void;
+  onLoginSuccess?: (user: Models.User<Models.Preferences>) => void;
 }
+
 
 const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess }) => {
   useEffect(() => {
-    WebBrowser.warmUpAsync();
+    void WebBrowser.warmUpAsync();
     return () => {
       void WebBrowser.coolDownAsync();
     };
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
+    let isExpoGo = false;
+    let expoProxyRedirectUri: string | undefined;
     try {
-      // Create OAuth2 session using Appwrite SDK
-      const redirectUri = Linking.createURL("");
-      console.log("[GoogleLogin] redirectUri:", redirectUri);
+      const configuredProjectId = process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID;
+      const clientProjectId = client.config.project;
 
-      // Start the OAuth2 flow - this returns the URL to open
-      const authUrl = account.createOAuth2Token(
+      // IMPORTANT: The callback scheme must match what is registered in app.json
+      // (and therefore what is built into the native app). If you change the projectId
+      // at runtime via env vars without rebuilding, the redirect will open in the browser
+      // and never return to the app.
+      const projectId = clientProjectId;
+
+      if (!projectId) {
+        throw new Error(
+          "Missing Appwrite project id. Set EXPO_PUBLIC_APPWRITE_PROJECT_ID or configure the Appwrite client."
+        );
+      }
+
+      if (configuredProjectId && configuredProjectId !== clientProjectId) {
+        console.warn(
+          "[GoogleLogin] EXPO_PUBLIC_APPWRITE_PROJECT_ID does not match lib/Client project id. " +
+            "Using the client project id to keep the callback scheme valid.",
+          { configuredProjectId, clientProjectId }
+        );
+      }
+
+      const executionEnvironment = (Constants as any).executionEnvironment;
+      const appOwnership = (Constants as any).appOwnership;
+      isExpoGo =
+        executionEnvironment === "storeClient" || appOwnership === "expo";
+
+      // Appwrite magic redirect format (do not change):
+      // appwrite-callback-<projectId>://auth
+      const nativeRedirectUri = `appwrite-callback-${projectId}://auth`;
+      expoProxyRedirectUri = AuthSession.makeRedirectUri({ useProxy: true });
+
+      // In Expo Go, custom schemes like appwrite-callback-... are not registered,
+      // which causes the web flow to hang on redirect. Use the Expo AuthSession proxy.
+      const redirectUri = isExpoGo ? expoProxyRedirectUri : nativeRedirectUri;
+
+      const response = account.createOAuth2Token(
         OAuthProvider.Google,
-        redirectUri, // success
-        redirectUri  // failure
+        redirectUri,
+        redirectUri
       );
 
-      console.log("[GoogleLogin] authUrl:", authUrl);
+      if (!response) {
+        throw new Error("Failed to create OAuth URL. Ensure Google OAuth is enabled in Appwrite and your redirect URL is allowlisted in Appwrite Platform settings.");
+      }
 
+      // Native builds: open the provider in the system browser and rely on the deep-link
+      // callback route (`/auth`) to exchange the one-time token. This avoids cases where
+      // `openAuthSessionAsync` reports cancel/dismiss due to Android system popups.
+      if (!isExpoGo) {
+        await WebBrowser.openBrowserAsync(response.toString());
+        return;
+      }
+
+      // Expo Go: use AuthSession proxy and read the returned URL directly.
       const result = await WebBrowser.openAuthSessionAsync(
-        authUrl.toString(),
+        response.toString(),
         redirectUri
       );
 
       if (result.type !== "success") {
-        console.log("[GoogleLogin] WebBrowser result type:", result.type);
+        // cancel/dismiss
         return;
       }
 
-      console.log("[GoogleLogin] Result URL:", result.url);
-
-      let secret: string | null | undefined;
-      let userId: string | null | undefined;
-
-      // Parse the returned URL for secret and userId
-      const parsed = Linking.parse(result.url);
-      secret = parsed.queryParams?.secret as string | undefined;
-      userId = parsed.queryParams?.userId as string | undefined;
-
-      // Try fragment if query params are empty
-      if (!secret || !userId) {
-        const hashIndex = result.url.indexOf("#");
-        if (hashIndex !== -1) {
-          const fragment = result.url.substring(hashIndex + 1);
-          const params = new URLSearchParams(fragment);
-          secret = params.get("secret") ?? undefined;
-          userId = params.get("userId") ?? undefined;
-        }
+      const returnedUrl = (result as any).url as string | undefined;
+      if (!returnedUrl) {
+        throw new Error("OAuth completed but no redirect URL was returned.");
       }
 
-      console.log("[GoogleLogin] Parsed userId:", userId, "secret:", secret ? "***" : "missing");
+      const url = new URL(returnedUrl);
+      const secret = url.searchParams.get("secret");
+      const userId = url.searchParams.get("userId");
 
-      if (!secret || !userId) {
-        throw new Error(`Invalid response from Google login. URL: ${result.url}`);
+      if (!userId || !secret) {
+        console.error("[GoogleLogin] Missing userId/secret in redirect.", { returnedUrl });
+        throw new Error("Login succeeded but session data was missing. Check your Appwrite OAuth redirect settings.");
       }
 
-      // Create the session with the token
       await account.createSession(userId, secret);
 
       const user = await account.get();
-      console.log("[GoogleLogin] Logged in user:", user);
-
-      if (onLoginSuccess) onLoginSuccess(user);
+      onLoginSuccess?.(user);
     } catch (error: any) {
       console.error("[GoogleLogin] login failed:", error);
-      Alert.alert("Login Failed", error?.message || "Google login failed. Please try again.");
+      let hint = "";
+      if (isExpoGo) {
+        let hostname = "auth.expo.io";
+        try {
+          if (expoProxyRedirectUri) hostname = new URL(expoProxyRedirectUri).hostname;
+        } catch {
+          // ignore
+        }
+        hint =
+          `\n\nYou're running in Expo Go. Appwrite must allow the Expo proxy redirect host.` +
+          `\nAdd a Web platform in Appwrite with hostname: ${hostname}` +
+          `\n(or use a custom development build and avoid the proxy).`;
+      }
+      Alert.alert(
+        "Login Failed",
+        (error?.message || "Google login failed. Please try again.") + hint
+      );
     }
   }, [onLoginSuccess]);
 

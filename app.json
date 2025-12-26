@@ -6,11 +6,22 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
-    "scheme": "movieapp",
+    "scheme": ["movieapp", "appwrite-callback-692fff110000e32f823a"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sheharyarn.movie_app",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "movieapp",
+              "appwrite-callback-692fff110000e32f823a"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +30,19 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.sheharyarn.movie_app"
+      "package": "com.sheharyarn.movie_app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [
+            {
+              "scheme": "appwrite-callback-692fff110000e32f823a",
+              "host": "auth"
+            }
+          ]
+        }
+      ]
     },
     "web": {
       "output": "static",
