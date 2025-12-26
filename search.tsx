@@ -1,6 +1,6 @@
 import { FetchMovies } from "@/api";
 import { images } from "@/constants/images";
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Text, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import SearchBar from "./app/components/SearchBar";
@@ -24,6 +24,12 @@ const Search = () => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
+  const renderMovieItem = useCallback(({ item }: { item: Movie }) => (
+    <MovieCard {...item} />
+  ), []);
+
+  const keyExtractor = useCallback((item: Movie) => item.id.toString(), []);
+
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <Image source={images.bg} className="flex-1 absolute w-full h-full z-0" resizeMode="cover" />
@@ -43,9 +49,14 @@ const Search = () => {
       ) : (
         <FlatList
           data={movies}
-          renderItem={({ item }) => <MovieCard {...item} />}
-          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderMovieItem}
+          keyExtractor={keyExtractor}
           numColumns={3}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          windowSize={7}
           columnWrapperStyle={{
             justifyContent: 'space-between',
             marginBottom: 10,

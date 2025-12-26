@@ -27,7 +27,13 @@ export default function TvShows() {
   }, []);
 
   const { data, loading: tvLoading, error: tvError, refetch } = useFetch(
-    () => FetchTV({ query: searchQuery, page, sortBy, year, filters }),
+    (p: number = page) => {
+      const q = (searchQuery || "").trim();
+      if (q.length > 0) {
+        return FetchTV({ query: q, page: p, sortBy, year, filters });
+      }
+      return FetchTV({ query: "", page: p, sortBy, year, filters });
+    },
     true
   );
 
@@ -37,7 +43,7 @@ export default function TvShows() {
       setPage(1);
       setHasMore(true);
       setTvList([]);
-      await refetch();
+      await refetch(1);
     }, 400);
     return () => clearTimeout(timeoutId);
   }, [searchQuery, sortBy, year, filters]);
@@ -50,20 +56,31 @@ export default function TvShows() {
 
   const loadMore = useCallback(async () => {
     if (tvLoading || !hasMore) return;
-    setPage((p) => p + 1);
-    await refetch();
-  }, [tvLoading, hasMore, refetch]);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await refetch(nextPage);
+  }, [tvLoading, hasMore, refetch, page]);
+
+  const renderTVItem = useCallback(({ item }: { item: Movie }) => (
+    <MovieCard {...item} type="tv" />
+  ), []);
+
+  const keyExtractor = useCallback((item: Movie) => item.id.toString(), []);
 
   const toggleGenre = (genreId: number) => {
-    const currentGenres = filters.with_genres ? filters.with_genres.split(',') : [];
-    const idStr = String(genreId);
-    let newGenres;
-    if (currentGenres.includes(idStr)) {
-      newGenres = currentGenres.filter(id => id !== idStr);
-    } else {
-      newGenres = [...currentGenres, idStr];
-    }
-    setFilters({ ...filters, with_genres: newGenres.join(',') });
+    setFilters((prev) => {
+      const currentGenres = prev.with_genres ? prev.with_genres.split(',').filter(Boolean) : [];
+      const idStr = String(genreId);
+      const newGenres = currentGenres.includes(idStr)
+        ? currentGenres.filter((id) => id !== idStr)
+        : [...currentGenres, idStr];
+
+      if (newGenres.length === 0) {
+        const { with_genres: _withGenres, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, with_genres: newGenres.join('|') };
+    });
   };
 
   const ListHeader = (
@@ -105,7 +122,7 @@ export default function TvShows() {
         <TouchableOpacity onPress={() => setSortBy("first_air_date.desc")} className={`px-5 py-2.5 rounded-full border ${sortBy === "first_air_date.desc" ? "bg-accent border-accent" : "bg-transparent border-light-300/30"}`}>
           <Text className={`${sortBy === "first_air_date.desc" ? "text-primary font-bold" : "text-light-200"}`}>Latest</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity onPress={() => setYear(new Date().getFullYear())} className={`px-5 py-2.5 rounded-full border ${year ? "bg-accent border-accent" : "bg-transparent border-light-300/30"}`}>
           <Text className={`${year ? "text-primary font-bold" : "text-light-200"}`}>This Year</Text>
         </TouchableOpacity>
@@ -125,11 +142,14 @@ export default function TvShows() {
       <SafeAreaView className="flex-1">
         <FlatList
           data={tvList}
-          renderItem={({ item }) => (
-            <MovieCard {...item} type="tv" />
-          )}
-          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderTVItem}
+          keyExtractor={keyExtractor}
           numColumns={3}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          initialNumToRender={10}
+          windowSize={7}
           ListHeaderComponent={ListHeader}
           ListEmptyComponent={
             !tvLoading && tvError ? (

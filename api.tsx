@@ -102,8 +102,23 @@ export const FetchMovies = async ({
         method: 'GET',
         headers: TMDB_CONFIG.headers})
 
-        const data = await response.json();
-        return data as MovieListResponse;
+        const data = (await response.json()) as MovieListResponse;
+
+        // Client-side filtering for the /search endpoint (TMDB ignores with_genres there).
+        if (query && query.trim().length > 0 && filters?.with_genres) {
+          const selectedGenres = filters.with_genres
+            .split(',')
+            .map((s) => Number(s))
+            .filter((n) => Number.isFinite(n));
+
+          if (selectedGenres.length > 0) {
+            data.results = data.results.filter((movie) =>
+              selectedGenres.some((genreId) => movie.genre_ids?.includes(genreId))
+            );
+          }
+        }
+
+        return data;
      
     }
         catch(error){
@@ -183,8 +198,23 @@ export const FetchTV = async ({
       method: 'GET',
       headers: TMDB_CONFIG.headers
     });
-    const data = await response.json();
-    return data as TVListResponse;
+    const data = (await response.json()) as TVListResponse;
+
+    // Client-side filtering for the /search endpoint (TMDB ignores with_genres there).
+    if (query && query.trim().length > 0 && filters?.with_genres) {
+      const selectedGenres = filters.with_genres
+        .split(',')
+        .map((s) => Number(s))
+        .filter((n) => Number.isFinite(n));
+
+      if (selectedGenres.length > 0) {
+        data.results = data.results.filter((tv) =>
+          selectedGenres.some((genreId) => tv.genre_ids?.includes(genreId))
+        );
+      }
+    }
+
+    return data;
   } catch (error) {
     console.error('Error fetching tv shows:', error);
     //@ts-ignore

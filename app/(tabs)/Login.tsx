@@ -1,5 +1,6 @@
 import { images } from "@/constants/images";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { Models } from "react-native-appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,11 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async (currentUser?: Models.User<Models.Preferences>) => {
+  const checkUser = useCallback(async (currentUser?: Models.User<Models.Preferences>) => {
     try {
       if (!currentUser) {
         currentUser = await account.get();
@@ -32,7 +29,19 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
+
+  // When coming back from the OAuth callback (/auth), this screen is usually already mounted.
+  // Refresh on focus so the UI updates from "Login" -> "Welcome" immediately.
+  useFocusEffect(
+    useCallback(() => {
+      void checkUser();
+    }, [checkUser])
+  );
 
   const handleLogout = async () => {
     try {

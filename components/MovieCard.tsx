@@ -1,4 +1,5 @@
 import { Link } from "expo-router";
+import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
 import { icons } from "@/constants/icons";
@@ -9,7 +10,7 @@ type MovieCardProps = Movie & {
   type?: "movie" | "tv";
 };
 
-const MovieCard = ({
+const MovieCard = React.memo(({
   id,
   poster_path,
   title,
@@ -57,6 +58,8 @@ const MovieCard = ({
       </TouchableOpacity>
     </Link>
   );
-};
+});
+
+MovieCard.displayName = 'MovieCard';
 
 export default MovieCard;

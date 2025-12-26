@@ -4,14 +4,14 @@ import { isFavorite, toggleFavorite } from "@/lib/favorites";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Linking,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Linking,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useFetch from "../services/usefetch";
@@ -68,7 +68,7 @@ const MovieDetails = () => {
     if (!movie || favLoading) return;
     setFavLoading(true);
     try {
-      const title = movie.title || movie.name || "Unknown";
+      const title = movie.title ;
       const posterPath = movie.poster_path || "";
       const newFavState = await toggleFavorite(
         Number(id),
@@ -415,8 +415,6 @@ const MovieDetails = () => {
               </View>
             </View>
           ) : null}
-
-          {/* Backdrops and Posters removed as requested */}
 
           {/* Watch Providers Section */}
           <View className="mt-8">
