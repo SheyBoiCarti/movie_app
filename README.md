@@ -1,8 +1,37 @@
-# Welcome to your Expo app 👋
+# Movie & TV Show Discovery App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-featured, cross-platform mobile application for discovering and tracking movies and TV shows, built with React Native and Expo. The app integrates with The Movie Database (TMDB) API to provide comprehensive entertainment content and features user authentication with personalized favorites management.
 
-## Get started
+## Project Description
+
+**Cross-Platform Entertainment Discovery Application**
+
+A production-ready mobile application that enables users to browse, search, and track movies and TV shows across iOS and Android platforms. This project demonstrates proficiency in modern mobile development, RESTful API integration, cloud-based authentication, and responsive UI design.
+
+### Key Features & Technical Highlights
+
+- **Cross-Platform Mobile Development**: Built with React Native and Expo, ensuring consistent user experience across iOS and Android with a single codebase
+- **RESTful API Integration**: Seamless integration with The Movie Database (TMDB) API, implementing advanced search, filtering, and pagination for thousands of movies and TV shows
+- **User Authentication & Authorization**: Implemented secure OAuth 2.0 authentication via Appwrite, including Google sign-in and session management
+- **Cloud Database Management**: Developed a favorites system using Appwrite's cloud database with real-time data synchronization and user-specific permissions
+- **Advanced Search & Filtering**: Created sophisticated filtering system with genre selection, rating filters, release date ranges, and multi-criteria sorting
+- **Responsive UI/UX Design**: Designed and implemented a modern, intuitive interface using TailwindCSS (NativeWind) with support for light/dark themes
+- **TypeScript Implementation**: Utilized TypeScript throughout the application for type safety, improved code quality, and enhanced developer experience
+- **State Management**: Implemented efficient state management patterns for handling asynchronous data fetching, caching, and UI updates
+- **Navigation Architecture**: Built multi-screen navigation using Expo Router with tab-based and stack-based navigation patterns
+- **Media Content Handling**: Developed detailed view screens for movies, TV shows, seasons, and episodes with rich metadata display
+- **Performance Optimization**: Implemented lazy loading, image optimization, and efficient data fetching strategies for smooth user experience
+
+### Technologies Used
+
+- **Frontend**: React Native, Expo, TypeScript
+- **Styling**: TailwindCSS (NativeWind)
+- **Backend Services**: Appwrite (Authentication, Database)
+- **APIs**: The Movie Database (TMDB) API
+- **Navigation**: Expo Router
+- **Development Tools**: ESLint, Metro bundler
+
+## Get Started
 
 1. Install dependencies
 
@@ -24,27 +53,3 @@ In the output, you'll find options to open the app in a
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
