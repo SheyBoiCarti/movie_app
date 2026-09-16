@@ -1,50 +1,111 @@
-# Welcome to your Expo app 👋
+# Movie & TV Show Discovery App 🎬
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-featured, cross-platform mobile application for discovering, exploring, and tracking movies and TV shows, built with React Native and Expo. The app integrates with The Movie Database (TMDB) API to provide comprehensive entertainment content and features cloud authentication and favorites management powered by Appwrite.
 
-## Get started
+---
 
-1. Install dependencies
+## 📱 Features
 
-   ```bash
-   npm install
-   ```
+- **Cross-Platform**: Seamless and responsive experience on both iOS and Android with a unified codebase.
+- **Rich Media Catalog**: Explore trending, popular, and top-rated movies and TV shows via TMDB.
+- **Advanced Search & Filtering**: Multi-criteria search by genre, release year, minimum rating, vote counts, and language.
+- **Deep Content Details**: Comprehensive detail views including plot summary, runtime, genres, trailers, cast/crew credits, watch providers, seasons, and episodes.
+- **User Authentication**: Secure user login with Google OAuth integration via Appwrite.
+- **Cloud Favorites**: Sync saved movies and TV shows to Appwrite Cloud with per-user isolation.
+- **Modern Design**: Built with TailwindCSS / NativeWind featuring dark mode aesthetic and fluid interactions.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tech Stack
 
-In the output, you'll find options to open the app in a
+- **Framework**: [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/) (SDK 54) & Expo Router
+- **Language**: TypeScript
+- **Styling**: NativeWind (Tailwind CSS v3)
+- **Backend / BaaS**: [Appwrite](https://appwrite.io/) (Authentication, Cloud Database)
+- **APIs**: [The Movie Database (TMDB) API](https://developer.themoviedb.org/reference/intro/getting-started)
+- **Navigation**: Expo Router (File-based navigation)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🚀 Getting Started
 
-## Get a fresh project
+### Prerequisites
 
-When you're ready, run:
+- Node.js (v18 or newer recommended)
+- npm or yarn
+- Expo Go app on your physical mobile device, or Android Studio / Xcode simulator
+- A free TMDB developer account & API read token
+- A free Appwrite account (Cloud or self-hosted)
+
+### 1. Clone the Repository
 
 ```bash
-npm run reset-project
+git clone https://github.com/SheyBoiCarti/movie_app.git
+cd movie_app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install Dependencies
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Configure Environment Variables
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Create a `.env` file in the project root by copying the template:
 
-## Join the community
+```bash
+cp .env.example .env
+```
 
-Join our community of developers creating universal apps.
+Open `.env` and fill in your keys:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```env
+# TMDB API Read Access Token
+EXPO_PUBLIC_API_KEY=your_tmdb_api_key_or_read_access_token
+
+# Appwrite Cloud Configuration
+EXPO_PUBLIC_APPWRITE_ENDPOINT=https://fra.cloud.appwrite.io/v1
+EXPO_PUBLIC_APPWRITE_PROJECT_ID=your_appwrite_project_id
+EXPO_PUBLIC_APPWRITE_DATABASE_ID=your_appwrite_database_id
+EXPO_PUBLIC_APPWRITE_FAVORITES_COLLECTION_ID=favorites
+```
+
+### 4. Run the Application
+
+Start the Expo development server:
+
+```bash
+npx expo start
+```
+
+Scan the QR code with:
+- **Expo Go** on Android
+- **Camera app** on iOS (then open in Expo Go)
+- Or press `a` for Android Emulator / `i` for iOS Simulator.
+
+---
+
+## 📂 Project Structure
+
+```
+movie_app/
+├── app/                      # Expo Router screens and navigation
+│   ├── (tabs)/               # Bottom tab screens (Home, Favorites, TvShows, Login)
+│   ├── movies/[id].tsx       # Movie details & credits
+│   ├── tv/episode.tsx        # TV season & episode breakdown
+│   ├── services/usefetch.ts  # Custom data fetching hook
+│   └── _layout.tsx           # Root navigation layout
+├── assets/                   # Fonts, icons, and image assets
+├── components/               # Reusable UI components (MovieCard, SearchBar, GoogleLoginButton)
+├── constants/                # App icons, themes, and images
+├── lib/                      # Appwrite Client & Favorites database service
+├── api.tsx                   # TMDB API service & endpoints
+└── tailwind.config.js        # Tailwind styling configuration
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
